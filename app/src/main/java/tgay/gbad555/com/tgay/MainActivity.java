@@ -9,9 +9,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.concurrent.ExecutionException;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +22,11 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://bastet.socialblade.com/")
+                .build();
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -29,10 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     loadSubs();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
                 }
 
 
@@ -43,16 +46,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void loadSubs() throws ExecutionException, InterruptedException {
-        //Some url endpoint that you may have
-        String myUrl = "https://bastet.socialblade.com/youtube/lookup?query=UC-lHJZR3Gqxm24_Vd_AJ5Yw";
-        //String to place our result in
-        String result;
-        //Instantiate new instance of our class
-        HttpGetRequest getRequest = new HttpGetRequest();
-        //Perform the doInBackground method, passing in our url
-        result = getRequest.execute(myUrl).get();
-        Log.d(MainActivity.class.getName(), "loadSubs: "+result);
+    public void loadSubs() throws Throwable {
+
+        HttpGetRequest httpGetRequest = new HttpGetRequest();
+        String subcount = httpGetRequest.execute().get();
+        Log.d(MainActivity.class.getName(), "response: " + subcount);
     }
 
 
@@ -60,28 +58,26 @@ public class MainActivity extends AppCompatActivity {
         public static final String REQUEST_METHOD = "GET";
         public static final int READ_TIMEOUT = 15000;
         public static final int CONNECTION_TIMEOUT = 15000;
+
         @Override
-        protected String doInBackground(String... params){
-            String stringUrl = params[0];
-            String result=null;
+        protected String doInBackground(String... params) {
+
             try {
-                //Create a URL object holding our url
-                URL myUrl = new URL(stringUrl);
-                //Create a connection
-                HttpURLConnection connection =(HttpURLConnection)
-                        myUrl.openConnection();
-                //Set methods and timeouts
-                connection.setRequestMethod(REQUEST_METHOD);
-                connection.setReadTimeout(READ_TIMEOUT);
-                connection.setConnectTimeout(CONNECTION_TIMEOUT);
+                OkHttpClient client = new OkHttpClient();
 
+                Request request = new Request.Builder()
+                        .url("https://bastet.socialblade.com/youtube/lookup?query=UC-lHJZR3Gqxm24_Vd_AJ5Yw")
+                        .get()
+                        .build();
 
-                //Connect to our url
-                connection.connect();
-            }catch(Exception e){
+                okhttp3.Response response = client.newCall(request).execute();
+                Log.d(MainActivity.class.getName(), "response: " + response.body());
+                return response.body().string();
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            return result;
+            return "NA";
         }
     }
 }
