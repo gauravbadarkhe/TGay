@@ -1,40 +1,31 @@
 package tgay.gbad555.com.tgay;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-
-import com.google.gson.JsonParser;
 import com.robinhood.ticker.TickerUtils;
 import com.robinhood.ticker.TickerView;
-
 import org.json.JSONObject;
-
-import java.util.Arrays;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
     TickerView pewd, tseries, diff;
-    //TextView diff;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         startService(new Intent(this,MusicService.class));
 
         pewd = findViewById(R.id.tv_pew);
@@ -53,13 +44,15 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
-                handler.postDelayed(this, 2000);
+                handler.postDelayed(this, 1000);
             }
-        }, 2000);
+        }, 1000);
     }
 
 
     public void loadSubs() throws Throwable {
+
+
 
         HttpGetRequest httpGetRequest = new HttpGetRequest();
         String subcount = httpGetRequest.execute().get();
@@ -69,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 long dif = Long.valueOf(subscribers[0]) - Long.valueOf(subscribers[1]);
                 diff.setText(dif + "");
+                addNotification(dif);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -95,16 +89,13 @@ public class MainActivity extends AppCompatActivity {
 
                 okhttp3.Response response = client.newCall(request).execute();
 
-
                 Request request2 = new Request.Builder()
                         .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UCq-Fj5jknLsUf-MWSy4_brA&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
                         .get()
                         .build();
 
-
                 okhttp3.Response response2 = client.newCall(request2).execute();
 
-                Log.d(MainActivity.class.getName(), "response: " + response.body());
 
                 long subcount = new JSONObject(response.body().string()).getJSONArray("items").getJSONObject(0).getJSONObject("statistics").getLong("subscriberCount");
                 long subcount2 = new JSONObject(response2.body().string()).getJSONArray("items").getJSONObject(0).getJSONObject("statistics").getLong("subscriberCount");
@@ -119,5 +110,29 @@ public class MainActivity extends AppCompatActivity {
             }
             return "NA";
         }
+    }
+
+    @Override
+    public void onBackPressed(){
+        stopService(new Intent(this,MusicService.class));
+        //System.exit(0);
+        finish();
+    }
+
+    private void addNotification(long dif) {
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, "default");
+        mBuilder.setContentTitle("Live Difference").setContentText(""+dif).setSmallIcon(R.mipmap.ic_launcher);
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("default",
+                    "default",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setSound(null,null);
+            mNotificationManager.createNotificationChannel(channel);
+        }
+
+        Notification notification = mBuilder.build();
+        mNotificationManager.notify(012345, notification);
     }
 }
