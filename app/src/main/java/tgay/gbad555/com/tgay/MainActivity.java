@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         HttpGetRequest httpGetRequest = new HttpGetRequest();
         String subcount = httpGetRequest.execute().get();
         String[] subscribers = subcount.split(",");
-        //if (subscribers[0].length() < 10 && subscribers[1].length() < 10) {
             pewd.setText(subscribers[0]);
             tseries.setText(subscribers[1]);
             try {
@@ -73,8 +72,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Log.d(MainActivity.class.getName(), "response: " + subcount);
-       // }
     }
 
 
@@ -98,23 +95,22 @@ public class MainActivity extends AppCompatActivity {
 
                 okhttp3.Response response = client.newCall(request).execute();
 
-               // subs.append(response.body().string()).append(",");
 
                 Request request2 = new Request.Builder()
-                        .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC-lHJZR3Gqxm24_Vd_AJ5Yw&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
+                        .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UCq-Fj5jknLsUf-MWSy4_brA&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
                         .get()
                         .build();
 
 
                 okhttp3.Response response2 = client.newCall(request2).execute();
-                //subs.append(response2.body().string());
 
                 Log.d(MainActivity.class.getName(), "response: " + response.body());
 
                 long subcount = new JSONObject(response.body().string()).getJSONArray("items").getJSONObject(0).getJSONObject("statistics").getLong("subscriberCount");
                 long subcount2 = new JSONObject(response2.body().string()).getJSONArray("items").getJSONObject(0).getJSONObject("statistics").getLong("subscriberCount");
-                Log.d("subcount", "subcount: "+subcount);
-                Log.d("subcount2", "subcount2: "+subcount2);
+
+
+                subs.append(subcount).append(",").append(subcount2);
 
                 return subs.toString();
 
