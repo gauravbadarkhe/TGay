@@ -1,5 +1,7 @@
 package tgay.gbad555.com.tgay;
 
+import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,7 +22,7 @@ import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
 
-    TickerView pewd,tseries,diff;
+    TickerView pewd, tseries, diff;
     //TextView diff;
 
     @Override
@@ -28,9 +30,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        new Music().execute();
+
         pewd = findViewById(R.id.tv_pew);
-        tseries=findViewById(R.id.tv_tseries);
-        diff=findViewById(R.id.tv_dif);
+        tseries = findViewById(R.id.tv_tseries);
+        diff = findViewById(R.id.tv_dif);
         pewd.setCharacterLists(TickerUtils.provideNumberList());
         tseries.setCharacterLists(TickerUtils.provideNumberList());
         diff.setCharacterLists(TickerUtils.provideNumberList());
@@ -44,9 +48,9 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
-                handler.postDelayed(this,2000);
+                handler.postDelayed(this, 2000);
             }
-        },2000);
+        }, 2000);
     }
 
 
@@ -55,17 +59,17 @@ public class MainActivity extends AppCompatActivity {
         HttpGetRequest httpGetRequest = new HttpGetRequest();
         String subcount = httpGetRequest.execute().get();
         String[] subscribers = subcount.split(",");
-        pewd.setText(subscribers[0]);
-        tseries.setText(subscribers[1]);
-        try {
-            long dif = Long.valueOf(subscribers[0])-Long.valueOf(subscribers[1]);
-            diff.setText(dif+"");
-        }catch (Exception e){
-            e.printStackTrace();
+        if (subscribers[0].length() < 10 && subscribers[1].length() < 10) {
+            pewd.setText(subscribers[0]);
+            tseries.setText(subscribers[1]);
+            try {
+                long dif = Long.valueOf(subscribers[0]) - Long.valueOf(subscribers[1]);
+                diff.setText(dif + "");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Log.d(MainActivity.class.getName(), "response: " + subcount);
         }
-
-
-        Log.d(MainActivity.class.getName(), "response: " + subcount);
     }
 
 
@@ -77,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
 
-            StringBuilder subs=new StringBuilder();
+            StringBuilder subs = new StringBuilder();
 
             try {
                 OkHttpClient client = new OkHttpClient();
@@ -87,9 +91,6 @@ public class MainActivity extends AppCompatActivity {
                         .get()
                         .build();
 
-
-
-
                 okhttp3.Response response = client.newCall(request).execute();
                 subs.append(response.body().string()).append(",");
 
@@ -97,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
                         .url("https://bastet.socialblade.com/youtube/lookup?query=UCq-Fj5jknLsUf-MWSy4_brA")
                         .get()
                         .build();
-
 
 
                 okhttp3.Response response2 = client.newCall(request2).execute();
@@ -110,6 +110,18 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             return "NA";
+        }
+    }
+
+    private class Music extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+
+            MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.music);
+            mp.start();
+
+            return null;
         }
     }
 }
