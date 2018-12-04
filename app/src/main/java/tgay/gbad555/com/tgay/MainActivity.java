@@ -13,8 +13,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.gson.JsonParser;
 import com.robinhood.ticker.TickerUtils;
 import com.robinhood.ticker.TickerView;
+
+import org.json.JSONObject;
+
+import java.util.Arrays;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -30,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        new Music().execute();
+        startService(new Intent(this,MusicService.class));
 
         pewd = findViewById(R.id.tv_pew);
         tseries = findViewById(R.id.tv_tseries);
@@ -59,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         HttpGetRequest httpGetRequest = new HttpGetRequest();
         String subcount = httpGetRequest.execute().get();
         String[] subscribers = subcount.split(",");
-        if (subscribers[0].length() < 10 && subscribers[1].length() < 10) {
+        //if (subscribers[0].length() < 10 && subscribers[1].length() < 10) {
             pewd.setText(subscribers[0]);
             tseries.setText(subscribers[1]);
             try {
@@ -69,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             Log.d(MainActivity.class.getName(), "response: " + subcount);
-        }
+       // }
     }
 
 
@@ -87,15 +92,16 @@ public class MainActivity extends AppCompatActivity {
                 OkHttpClient client = new OkHttpClient();
 
                 Request request = new Request.Builder()
-                        .url("https://bastet.socialblade.com/youtube/lookup?query=UC-lHJZR3Gqxm24_Vd_AJ5Yw")
+                        .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC-lHJZR3Gqxm24_Vd_AJ5Yw&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
                         .get()
                         .build();
 
                 okhttp3.Response response = client.newCall(request).execute();
+
                 subs.append(response.body().string()).append(",");
 
                 Request request2 = new Request.Builder()
-                        .url("https://bastet.socialblade.com/youtube/lookup?query=UCq-Fj5jknLsUf-MWSy4_brA")
+                        .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC-lHJZR3Gqxm24_Vd_AJ5Yw&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
                         .get()
                         .build();
 
@@ -110,18 +116,6 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             return "NA";
-        }
-    }
-
-    private class Music extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... strings) {
-
-            MediaPlayer mp = MediaPlayer.create(MainActivity.this, R.raw.music);
-            mp.start();
-
-            return null;
         }
     }
 }
