@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
 import com.robinhood.ticker.TickerUtils;
 import com.robinhood.ticker.TickerView;
 import org.json.JSONObject;
@@ -21,12 +23,13 @@ import okhttp3.Request;
 public class MainActivity extends AppCompatActivity {
 
     TickerView pewd, tseries, diff;
+    String choice;
+    Long dif;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        startService(new Intent(this,MusicService.class));
 
         pewd = findViewById(R.id.tv_pew);
         tseries = findViewById(R.id.tv_tseries);
@@ -34,6 +37,15 @@ public class MainActivity extends AppCompatActivity {
         pewd.setCharacterLists(TickerUtils.provideNumberList());
         tseries.setCharacterLists(TickerUtils.provideNumberList());
         diff.setCharacterLists(TickerUtils.provideNumberList());
+        diff.setText("0");
+        choice=getIntent().getExtras().getString("choice");
+        dif=0L;
+
+        if(choice.equals("pewdiepie")){
+            startService(new Intent(this,MusicService.class));
+        }else{
+            startService(new Intent(this,Music2Service.class));
+        }
 
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
@@ -60,8 +72,16 @@ public class MainActivity extends AppCompatActivity {
             pewd.setText(subscribers[0]);
             tseries.setText(subscribers[1]);
             try {
-                long dif = Long.valueOf(subscribers[0]) - Long.valueOf(subscribers[1]);
-                diff.setText(dif + "");
+                Long dif2=Long.valueOf(subscribers[0]) - Long.valueOf(subscribers[1]);
+                 dif = Long.valueOf(diff.getText().toString());
+                 if(dif-dif2>0){
+                     diff.setTextColor(getResources().getColor(R.color.red));
+                     diff.setText(dif2.toString());
+                 }else{
+                     diff.setTextColor(getResources().getColor(R.color.green));
+                     diff.setText(dif2.toString());
+                 }
+                Log.d("Main", "dif: " + dif);
                 addNotification(dif);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -82,15 +102,22 @@ public class MainActivity extends AppCompatActivity {
             try {
                 OkHttpClient client = new OkHttpClient();
 
-                Request request = new Request.Builder()
+                /*Request request = new Request.Builder()
                         .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC-lHJZR3Gqxm24_Vd_AJ5Yw&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
+                        .get()
+                        .build();*/
+
+                Request request = new Request.Builder()
+                        .url(/*"https://subscribercount.live/passid?var=UC-lHJZR3Gqxm24_Vd_AJ5Yw"*/
+                        "https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UC-lHJZR3Gqxm24_Vd_AJ5Yw&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
                         .get()
                         .build();
 
                 okhttp3.Response response = client.newCall(request).execute();
 
                 Request request2 = new Request.Builder()
-                        .url("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UCq-Fj5jknLsUf-MWSy4_brA&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
+                        .url(/*"https://subscribercount.live/passid?var=UCq-Fj5jknLsUf-MWSy4_brA"*/
+                        "https://www.googleapis.com/youtube/v3/channels?part=statistics&id=UCq-Fj5jknLsUf-MWSy4_brA&fields=items%2Fstatistics%2FsubscriberCount&key=AIzaSyCmRPZ4hLkijSTtJYnjIitvAd45z291Bzs")
                         .get()
                         .build();
 
@@ -102,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 subs.append(subcount).append(",").append(subcount2);
+                //subs.append(response.body().string()).append(",").append(response2.body().string());
 
                 return subs.toString();
 
@@ -115,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed(){
         stopService(new Intent(this,MusicService.class));
+        stopService(new Intent(this,Music2Service.class));
         //System.exit(0);
         finish();
     }

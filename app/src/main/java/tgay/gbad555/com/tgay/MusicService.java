@@ -35,7 +35,7 @@ public class MusicService extends Service {
     public int onStartCommand(Intent intent,int flags,int startId){
 
          mp= MediaPlayer.create(this,R.raw.music);
-        //mp.setLooping(true);
+        mp.setLooping(true);
         //mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
